@@ -1,6 +1,6 @@
 # Cmd 按键状态提示工具
 
-基于 Tauri v2 的 macOS 菜单栏常驻小工具。
+由于时间与地域的关系，手上这台 MacBook Air 的左侧 `command` 疑似微坏，有时处于按下状态，手动再按下一次方可解除。这很影响体验，遂基于 Tauri 实现了个检测和提示的小工具。
 
 ## 功能
 
@@ -31,7 +31,7 @@ cargo tauri dev
 
 打包产物目录：
 
-- `src-tauri/target/release/bundle/`
+- src-tauri/target/release/bundle/
 
 ## 说明
 
