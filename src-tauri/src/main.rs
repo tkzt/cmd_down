@@ -7,7 +7,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::{TrayIcon, TrayIconBuilder};
-use tauri::{AppHandle, Manager};
+use tauri::{ActivationPolicy, AppHandle, Manager};
 
 const TITLE_NORMAL: &str = "🍏";
 const TITLE_ALERT: &str = "🍎";
@@ -31,18 +31,6 @@ fn set_threshold_and_refresh_checks(app: &AppHandle, threshold_ms: u64) {
         return;
     };
     state.threshold_ms.store(threshold_ms, Ordering::Relaxed);
-
-    let ids = [
-        (1000_u64, "threshold_1"),
-        (2000_u64, "threshold_2"),
-        (3000_u64, "threshold_3"),
-        (5000_u64, "threshold_5"),
-    ];
-    for (ms, id) in ids {
-        if let Some(item) = app.get_menu_item(id) {
-            let _ = item.set_checked(ms == threshold_ms);
-        }
-    }
 }
 
 fn spawn_keyboard_monitor(app: AppHandle, tray: TrayIcon) {
@@ -52,7 +40,9 @@ fn spawn_keyboard_monitor(app: AppHandle, tray: TrayIcon) {
 
         loop {
             let keys = device.get_keys();
-            let left_cmd_down = keys.contains(&Keycode::LMeta);
+            let left_cmd_down = keys.contains(&Keycode::Command)
+                || keys.contains(&Keycode::LMeta)
+                || keys.contains(&Keycode::RMeta);
 
             if left_cmd_down {
                 if left_cmd_down_since.is_none() {
@@ -115,6 +105,10 @@ fn build_tray(app: &AppHandle) -> tauri::Result<TrayIcon> {
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            app.handle()
+                .set_activation_policy(ActivationPolicy::Accessory)?;
+
             let shared = Arc::new(SharedState {
                 threshold_ms: AtomicU64::new(2000),
                 is_alert: AtomicBool::new(false),
